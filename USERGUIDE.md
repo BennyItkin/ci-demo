@@ -230,7 +230,7 @@ steps:
     stage: publish
 ```
 
-Here `build` runs first (both build steps in parallel across images), then `test`,
+Here `build` runs first (its two steps run in order on each image, with images running in parallel), then `test`,
 then `publish`. See `.ci/examples/job_matrix_stages.yaml` for a complete example.
 
 ## Validation

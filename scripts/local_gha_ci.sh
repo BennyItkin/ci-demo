@@ -349,12 +349,12 @@ assert_stage_order() {
   fi
   actual=$(extract_console_stages "${console_log}")
   if [[ "${expected}" == "${actual}" ]]; then
-    echo "STAGE-ORDER PASS ${label}: $(echo ${expected} | tr '\n' ' ')"
+    echo "STAGE-ORDER PASS ${label}: $(printf '%s' "${expected}" | tr '\n' ' ')"
     return 0
   fi
   echo "STAGE-ORDER FAIL ${label}"
-  echo "  expected: $(echo ${expected} | tr '\n' ' ')"
-  echo "  actual:   $(echo ${actual} | tr '\n' ' ')"
+  echo "  expected: $(printf '%s' "${expected}" | tr '\n' ' ')"
+  echo "  actual:   $(printf '%s' "${actual}" | tr '\n' ' ')"
   return 1
 }
 

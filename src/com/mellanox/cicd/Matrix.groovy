@@ -1107,7 +1107,7 @@ Map getTasks(axes, image, config, include, exclude, stageName=null) {
         }
 
         config.logger.trace(5, "task name " + branchName)
-        def taskSteps = stageName ? getStepsForStage(config, stageName) : config.steps
+        def taskSteps = stepsToCheck
         tasks[branchName] = { ->
             withEnv(axisEnv) {
                 if ((config.get("kubernetes") == null) &&
@@ -1541,20 +1541,17 @@ def run_parallel_in_chunks(config, myTasks, depth, stageName=null) {
     def val = getConfigVal(config, ['failFast'], false)
 
     config.logger.trace(3, "run_parallel_in_chunks: batch size is ${bSize}")
-    if (stageName) {
-        stage(stageName) {
-            (myTasks.keySet() as List).collate(bSize).each {
-                def batchMap = myTasks.subMap(it)
-                batchMap['failFast'] = val
-                parallel batchMap
-            }
-        }
-    } else {
+    def runBatches = {
         (myTasks.keySet() as List).collate(bSize).each {
-                def batchMap = myTasks.subMap(it)
-                batchMap['failFast'] = val
-                parallel batchMap
-            }
+            def batchMap = myTasks.subMap(it)
+            batchMap['failFast'] = val
+            parallel batchMap
+        }
+    }
+    if (stageName) {
+        stage(stageName) { runBatches() }
+    } else {
+        runBatches()
     }
 
 }
@@ -1724,17 +1721,16 @@ def startPipeline(String label) {
                             }
                         }
 
-                        def stage_arch_distro_map = gen_image_map(config)
-                         // Get unique stages and execute sequentially
+                        // Get unique stages and execute sequentially
                         def stages = getUniqueStages(config)
                         if (stages.size() > 1) {
                             config.logger.debug("Unique stages identified: " + stages)
                             for (stageName in stages) {
                                 config.logger.info("Starting stage: ${stageName}")
-                                
+
                                 def stageBranches = [:]
-                                                                
-                                for (def entry in entrySet(stage_arch_distro_map)) {
+
+                                for (def entry in entrySet(arch_distro_map)) {
                                     def images = entry.value
                                     for (int j=0; j<images.size(); j++) {
                                         def image = images[j]
@@ -1753,7 +1749,7 @@ def startPipeline(String label) {
                                 
                                 // Run all tasks for this stage in parallel
                                 if (stageBranches.size() > 0) {
-                                    run_parallel_in_chunks(config, stageBranches, bSize,stageName)
+                                    run_parallel_in_chunks(config, stageBranches, bSize, stageName)
                                 }
                                 
                                 config.logger.info("Completed stage: ${stageName}")

@@ -8,9 +8,9 @@ runs_on_dockers:
   - {name: 'ubuntu2204', url: 'ubuntu:22.04', arch: 'x86_64'}
   - {name: 'rhel9', url: 'redhat/ubi9', arch: 'x86_64'}
 
-# Steps are assigned to Jenkins stages based on the 'stage' field.
-# All steps with the same 'stage' value are grouped together and executed sequentially within that stage block.
-# Steps without a 'stage' field are assigned to a default stage and executed in order.
+# Steps with the same 'stage' value are grouped and run in parallel
+# under a single Jenkins stage block. Steps without 'stage' are
+# grouped into a 'default' stage and also run in parallel together.
 
 steps:
   - name: Build lib
